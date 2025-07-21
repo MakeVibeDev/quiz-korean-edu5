@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import Quiz from './components/Quiz'
 import './App.css'
 
 function App() {
-  const [selectedQuiz, setSelectedQuiz] = useState<number | null>(null)
+  const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null)
 
   const quizTypes = [
     { id: 1, title: 'A', emoji: '🎯' },
@@ -12,6 +13,10 @@ function App() {
     { id: 5, title: 'E', emoji: '🎭' },
     { id: 6, title: 'F', emoji: '🎪' },
   ]
+
+  if (selectedQuiz) {
+    return <Quiz quizType={selectedQuiz} onExit={() => setSelectedQuiz(null)} />
+  }
 
   return (
     <div className="App">
@@ -27,7 +32,7 @@ function App() {
             <button
               key={quiz.id}
               className="quiz-button"
-              onClick={() => setSelectedQuiz(quiz.id)}
+              onClick={() => setSelectedQuiz(quiz.title)}
             >
               <span className="quiz-emoji">{quiz.emoji}</span>
               <span className="quiz-title">{quiz.title}</span>
