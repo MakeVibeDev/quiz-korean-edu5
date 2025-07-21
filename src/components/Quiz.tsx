@@ -22,6 +22,12 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [timeLeft, setTimeLeft] = useState(300) // 5분 = 300초
   const [isTimeUp, setIsTimeUp] = useState(false)
+  const [showHint, setShowHint] = useState(false)
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
+  const [showAnswer, setShowAnswer] = useState(false)
+  const [score, setScore] = useState(0)
+  const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set())
+  const [showScoreScreen, setShowScoreScreen] = useState(false)
 
   // 문제 섞기 및 초기화
   useEffect(() => {
@@ -43,6 +49,9 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
   }, [timeLeft, isTimeUp])
 
   const handleNext = () => {
+    setShowHint(false) // 다음 문제로 넘어갈 때 힌트 숨기기
+    setSelectedAnswer(null) // 선택한 답안 초기화
+    setShowAnswer(false) // 정답 표시 초기화
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
     } else {
@@ -50,6 +59,25 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
       const shuffled = [...questions].sort(() => Math.random() - 0.5)
       setQuestions(shuffled)
       setCurrentQuestionIndex(0)
+    }
+  }
+
+  const handleAnswerSelect = (index: number) => {
+    if (!showAnswer) {
+      setSelectedAnswer(index)
+    }
+  }
+
+  const handleCheckAnswer = () => {
+    setShowAnswer(true)
+    
+    // 이미 답을 확인한 문제는 점수를 다시 주지 않음
+    const currentQuestion = questions[currentQuestionIndex]
+    if (!answeredQuestions.has(currentQuestion.id) && currentQuestion.type === 'multiple-choice') {
+      if (selectedAnswer === currentQuestion.answer) {
+        setScore(score + 1)
+      }
+      setAnsweredQuestions(new Set([...answeredQuestions, currentQuestion.id]))
     }
   }
 
@@ -63,14 +91,29 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
     return <div className="quiz-loading">문제를 불러오는 중...</div>
   }
 
-  if (isTimeUp) {
+  const handleExit = () => {
+    setShowScoreScreen(true)
+  }
+
+  if (isTimeUp || showScoreScreen) {
     return (
       <div className="quiz-container">
-        <div className="time-up">
-          <h2>⏰ 시간이 끝났습니다!</h2>
-          <p>수고하셨습니다.</p>
-          <button className="exit-button" onClick={onExit}>
-            처음으로 돌아가기
+        <div className="score-screen">
+          <h2>🎉 퀴즈가 끝났습니다!</h2>
+          <div className="final-score">
+            <span className="score-label">최종 점수</span>
+            <span className="score-value">{score}점</span>
+            <span className="score-total">/ {questions.filter(q => q.type === 'multiple-choice').length}점</span>
+          </div>
+          <p className="score-message">
+            {score >= questions.filter(q => q.type === 'multiple-choice').length * 0.8 
+              ? '🌟 훌륭해요! 정말 잘했어요!' 
+              : score >= questions.filter(q => q.type === 'multiple-choice').length * 0.6 
+              ? '👍 좋아요! 조금만 더 노력하면 더 잘할 수 있어요!' 
+              : '💪 괜찮아요! 다시 한번 도전해보세요!'}
+          </p>
+          <button className="home-button" onClick={onExit}>
+            나가기
           </button>
         </div>
       </div>
@@ -88,8 +131,13 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
             {formatTime(timeLeft)}
           </span>
         </div>
-        <div className="question-counter">
-          문제 {currentQuestionIndex + 1} / {questions.length}
+        <div className="header-right">
+          <div className="score-display">
+            점수: {score}점
+          </div>
+          <div className="question-counter">
+            문제 {currentQuestionIndex + 1} / {questions.length}
+          </div>
         </div>
       </div>
 
@@ -107,27 +155,58 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
           {currentQuestion.type === 'multiple-choice' && currentQuestion.options && (
             <div className="options">
               {currentQuestion.options.map((option, index) => (
-                <div key={index} className="option">
+                <div 
+                  key={index} 
+                  className={`option ${selectedAnswer === index ? 'selected' : ''} ${
+                    showAnswer ? (index === currentQuestion.answer ? 'correct' : selectedAnswer === index ? 'incorrect' : '') : ''
+                  }`}
+                  onClick={() => handleAnswerSelect(index)}
+                >
                   <span className="option-number">{index + 1}.</span>
                   <span className="option-text">{option}</span>
+                  {showAnswer && index === currentQuestion.answer && (
+                    <span className="check-icon">✓</span>
+                  )}
+                  {showAnswer && selectedAnswer === index && index !== currentQuestion.answer && (
+                    <span className="wrong-icon">✗</span>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
           {currentQuestion.hint && (
-            <div className="hint">
-              <span className="hint-icon">💡</span>
-              <span className="hint-text">힌트: {currentQuestion.hint}</span>
+            <div className="hint-container">
+              {!showHint ? (
+                <button className="hint-button" onClick={() => setShowHint(true)}>
+                  <span className="hint-icon">💡</span>
+                  <span>힌트 보기</span>
+                </button>
+              ) : (
+                <div className="hint">
+                  <span className="hint-icon">💡</span>
+                  <span className="hint-text">힌트: {currentQuestion.hint}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
       <div className="quiz-footer">
-        <button className="exit-button" onClick={onExit}>
+        <button className="exit-button" onClick={handleExit}>
           종료
         </button>
+        {selectedAnswer !== null && !showAnswer && currentQuestion.type === 'multiple-choice' && (
+          <button className="check-button" onClick={handleCheckAnswer}>
+            정답 확인
+          </button>
+        )}
+        {currentQuestion.type === 'fill-blank' && !showAnswer && (
+          <button className="check-button" onClick={handleCheckAnswer}>
+            정답 확인
+          </button>
+        )}
         <button className="next-button" onClick={handleNext}>
           다음 문제 →
         </button>
