@@ -2,10 +2,11 @@
   "name": "quiz-korean-edu5",
   "version": "1.0.0",
   "description": "Korean Education Quiz Web Application",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "repository": {
@@ -15,7 +16,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/MakeVibeDev/quiz-korean-edu5/issues"
   },

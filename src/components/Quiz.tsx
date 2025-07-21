@@ -28,6 +28,7 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
   const [score, setScore] = useState(0)
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set())
   const [showScoreScreen, setShowScoreScreen] = useState(false)
+  const [fillBlankCorrect, setFillBlankCorrect] = useState<boolean | null>(null)
 
   // 문제 섞기 및 초기화
   useEffect(() => {
@@ -52,6 +53,7 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
     setShowHint(false) // 다음 문제로 넘어갈 때 힌트 숨기기
     setSelectedAnswer(null) // 선택한 답안 초기화
     setShowAnswer(false) // 정답 표시 초기화
+    setFillBlankCorrect(null) // 주관식 정답 선택 초기화
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
     } else {
@@ -81,6 +83,17 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
     }
   }
 
+  const handleFillBlankAnswer = (isCorrect: boolean) => {
+    const currentQuestion = questions[currentQuestionIndex]
+    if (!answeredQuestions.has(currentQuestion.id)) {
+      setFillBlankCorrect(isCorrect)
+      if (isCorrect) {
+        setScore(score + 1)
+      }
+      setAnsweredQuestions(new Set([...answeredQuestions, currentQuestion.id]))
+    }
+  }
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
@@ -103,12 +116,12 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
           <div className="final-score">
             <span className="score-label">최종 점수</span>
             <span className="score-value">{score}점</span>
-            <span className="score-total">/ {questions.filter(q => q.type === 'multiple-choice').length}점</span>
+            <span className="score-total">/ {questions.length}점</span>
           </div>
           <p className="score-message">
-            {score >= questions.filter(q => q.type === 'multiple-choice').length * 0.8 
+            {score >= questions.length * 0.8 
               ? '🌟 훌륭해요! 정말 잘했어요!' 
-              : score >= questions.filter(q => q.type === 'multiple-choice').length * 0.6 
+              : score >= questions.length * 0.6 
               ? '👍 좋아요! 조금만 더 노력하면 더 잘할 수 있어요!' 
               : '💪 괜찮아요! 다시 한번 도전해보세요!'}
           </p>
@@ -175,6 +188,53 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
             </div>
           )}
 
+          {currentQuestion.type === 'fill-blank' && (
+            <div className="fill-blank-container">
+              <div className="answer-input">
+                <label>올바른 문장:</label>
+                <input type="text" className="blank-input" disabled />
+              </div>
+              {showAnswer && currentQuestion.answer && (
+                <>
+                  <div className="correct-answer">
+                    <span className="answer-label">정답:</span>
+                    <span className="answer-text">{currentQuestion.answer}</span>
+                  </div>
+                  {fillBlankCorrect === null && !answeredQuestions.has(currentQuestion.id) && (
+                    <div className="answer-selection">
+                      <p className="selection-prompt">정답을 맞췄나요?</p>
+                      <div className="selection-buttons">
+                        <button 
+                          className="selection-button correct"
+                          onClick={() => handleFillBlankAnswer(true)}
+                        >
+                          <span className="button-icon">⭕</span>
+                          <span>정답</span>
+                        </button>
+                        <button 
+                          className="selection-button incorrect"
+                          onClick={() => handleFillBlankAnswer(false)}
+                        >
+                          <span className="button-icon">❌</span>
+                          <span>오답</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {fillBlankCorrect !== null && (
+                    <div className="answer-result">
+                      {fillBlankCorrect ? (
+                        <span className="result-correct">✅ 정답으로 체크했습니다!</span>
+                      ) : (
+                        <span className="result-incorrect">❌ 오답으로 체크했습니다.</span>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           {currentQuestion.hint && (
             <div className="hint-container">
               {!showHint ? (
@@ -202,8 +262,12 @@ const Quiz: React.FC<QuizProps> = ({ quizType, onExit }) => {
             정답 확인
           </button>
         )}
-        {currentQuestion.type === 'fill-blank' && !showAnswer && (
-          <button className="check-button" onClick={handleCheckAnswer}>
+        {currentQuestion.type === 'fill-blank' && (
+          <button 
+            className="check-button" 
+            onClick={handleCheckAnswer}
+            disabled={showAnswer}
+          >
             정답 확인
           </button>
         )}
