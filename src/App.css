@@ -1,0 +1,138 @@
+.App {
+  text-align: center;
+  color: white;
+}
+
+.App-header {
+  margin-bottom: 3rem;
+}
+
+.school-logo {
+  width: 200px;
+  height: auto;
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+.App-header h1 {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.App-header p {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+.quiz-selection {
+  width: 100%;
+}
+
+.quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.quiz-button {
+  background: white;
+  color: #333;
+  padding: 3rem 2rem;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+  justify-content: center;
+}
+
+.quiz-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.quiz-button:hover::before {
+  opacity: 0.1;
+}
+
+.quiz-emoji {
+  font-size: 3.5rem;
+  display: block;
+}
+
+.quiz-title {
+  font-size: 3rem;
+  font-weight: 700;
+  z-index: 1;
+  color: #667eea;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .school-logo {
+    width: 150px;
+  }
+  
+  .App-header h1 {
+    font-size: 2.5rem;
+  }
+  
+  .App-header p {
+    font-size: 1.2rem;
+  }
+  
+  .quiz-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .quiz-button {
+    padding: 2rem 1.5rem;
+  }
+  
+  .quiz-emoji {
+    font-size: 2.5rem;
+  }
+  
+  .quiz-title {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quiz-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  
+  .quiz-button {
+    padding: 1.5rem 1rem;
+  }
+  
+  .quiz-emoji {
+    font-size: 2rem;
+  }
+  
+  .quiz-title {
+    font-size: 2rem;
+  }
+}
